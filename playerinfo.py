@@ -193,5 +193,5 @@ def getPlayerEquipment(equip_url):
     
   return player_equip_list
 
-#nickname="울티아"
-#getPlayerURL(nickname)
+nickname="울티아"
+getPlayerURL(nickname)
