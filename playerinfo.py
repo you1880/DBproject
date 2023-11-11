@@ -64,6 +64,7 @@ def getPlayerPage(player_page_URL):
     return
   
   player_stats = getPlayerStats(player_page_soup)
+  print(player_stats)
   
   find_equip = player_page_soup.find(class_="lnb_list").find('a', string="장비")
   equip_URL = maple_URL + find_equip['href']
@@ -116,20 +117,28 @@ def getPlayerStats(player_page_soup):
   #player의 방무
   char_IGN_DEF = stats_info_list[9].string
   
-  #player 정보를 리스트형식으로 반환
-  return {"닉네임" : nickname, "레벨" : char_LV, "이미지" : char_img, "직업" : char_job, "스탯 공격력" : char_DMG, "힘" : char_STR, "덱스" : char_DEX, "인트" : char_INT,
-          "럭" : char_LUK, "크리티컬 데미지" : char_CRITICAL_DMG, "보스 데미지" : char_BOSS_DMG, "방어율 무시" : char_IGN_DEF}
+  char_stat_dic = {"STR": char_STR, "DEX" : char_DEX, "INT" : char_INT, "LUK" : char_LUK,
+                  "Critical Damaage" : char_CRITICAL_DMG, "Boss Damage" : char_BOSS_DMG, "Ignore Defense" : char_IGN_DEF}
+  
+  #player 정보를 반환
+  return {"닉네임" : nickname, "레벨" : char_LV, "이미지" : char_img, "직업" : char_job, "스탯 공격력" : char_DMG, "스탯 리스트" : char_stat_dic}
 
 def getItemInfo(info_attr):
   info_soup = bs(info_attr, 'html.parser')
   
   #장비 이름 추출
   title_lines = [line for line in info_soup.find(class_="item_memo_title").get_text().splitlines() if line.strip()]
-  equip_title = title_lines[0].strip()
+  
+  if len(title_lines) == 3:
+    equip_title = title_lines[0].strip() + ' ' + title_lines[1].strip()
+    equip_starforce = title_lines[2].strip().replace('성 강화', '')
+  else:
+    equip_title = title_lines[0].strip()
+    
   #스타포스 강화 가능한 장비여부 판단
   if len(title_lines) == 2:
     equip_starforce = title_lines[1].strip().replace('성 강화', '')
-  else:
+  elif len(title_lines) == 1:
     equip_starforce = ''
   
   #아이템 이미지 추출
@@ -180,7 +189,7 @@ def getPlayerEquipment(equip_url):
   #아이템 팟 장비 정보를 순서대로 보관할 장비 리스트
   player_equip_list = []
   #list = [1, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30]
-  list = [8]
+  list = [17]
   
   for i in list:
     item_pot_link = driver.find_element(By.XPATH, '/html/body/div[3]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/ul/li[' + str(i) + ']')
@@ -193,5 +202,5 @@ def getPlayerEquipment(equip_url):
     
   return player_equip_list
 
-nickname="울티아"
+nickname="socowa비숍"
 getPlayerURL(nickname)
