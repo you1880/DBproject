@@ -27,7 +27,6 @@ import time
 #--ability = [1줄, 2줄, 3줄], add_ability = [1줄, 2줄, 3줄]
 #--[Equip1, Equip2, Equip3...]형태가 될것
 
-nickname = ""
 maple_URL = "https://maplestory.nexon.com"
 
 #랭킹에서 플레이어 정보를 가져오는 과정
@@ -43,14 +42,24 @@ def getPlayerURL(nickname):
     return
   
   playerURL_soup = bs(response.text, "html.parser")
-  
   #플레이어 페이지의 주소를 가져오는 과정
-  find_player_page_URL = playerURL_soup.find(class_="search_com_chk").find_all("td")[1].find("a")
-  player_page_URL = maple_URL + find_player_page_URL['href']
+  try:
+    find_player_page_URL = playerURL_soup.find(class_="search_com_chk").find_all("td")[1].find("a")
+  except AttributeError as e:
+    print("해당 플레이어를 찾을 수 없음")
+    return
   
-  getPlayerPage(player_page_URL)
+  player_page_URL = maple_URL + find_player_page_URL['href']
+    
+  return player_page_URL
 
-def getPlayerPage(player_page_URL):
+def getPlayerPage(playername):
+  nickname = playername
+  player_page_URL = getPlayerURL(nickname)
+  
+  if not player_page_URL:
+    return -1
+  
   response = requests.get(player_page_URL)
   #웹 페이지 응답 없을시 종료
   if response.status_code != 200:
@@ -61,19 +70,21 @@ def getPlayerPage(player_page_URL):
   #정보 비공개일시 처리
   if player_page_soup.find(class_="private2"):
     print("해당 플레이어는 정보를 공개하지 않습니다")
-    return
+    return -1
   
-  player_stats = getPlayerStats(player_page_soup)
-  print(player_stats)
+  player_stats = getPlayerStats(player_page_soup, nickname)
+  #print(player_stats)
   
   find_equip = player_page_soup.find(class_="lnb_list").find('a', string="장비")
   equip_URL = maple_URL + find_equip['href']
 
-  player_equip_list = getPlayerEquipment(equip_URL)
-  print(player_equip_list)
+  player_equip_list = getPlayerEquipment(equip_URL, nickname)
+  
+  return {"스탯 정보" : player_stats, "장비 정보" : player_equip_list}
+  #print(player_equip_list)
 
 #플레이어의 기본 스텟을 불러오는 함수
-def getPlayerStats(player_page_soup): 
+def getPlayerStats(player_page_soup, nickname): 
   #html태그 내 char_info부분을 가져오는 과정
   find_basic_info = player_page_soup.find(class_="char_info")
   basic_info_list = find_basic_info.find_all("dd")
@@ -118,12 +129,12 @@ def getPlayerStats(player_page_soup):
   char_IGN_DEF = stats_info_list[9].string
   
   char_stat_dic = {"STR": char_STR, "DEX" : char_DEX, "INT" : char_INT, "LUK" : char_LUK,
-                  "Critical Damaage" : char_CRITICAL_DMG, "Boss Damage" : char_BOSS_DMG, "Ignore Defense" : char_IGN_DEF}
+                  "Critical Damage" : char_CRITICAL_DMG, "Boss Damage" : char_BOSS_DMG, "Ignore Defense" : char_IGN_DEF}
   
   #player 정보를 반환
-  return {"닉네임" : nickname, "레벨" : char_LV, "이미지" : char_img, "직업" : char_job, "스탯 공격력" : char_DMG, "스탯 리스트" : char_stat_dic}
+  return {"닉네임" : nickname, "레벨" : char_LV, "직업" : char_job, "이미지" : char_img, "스탯 공격력" : char_DMG, "스탯 리스트" : char_stat_dic}
 
-def getItemInfo(info_attr):
+def getItemInfo(info_attr, nickname):
   info_soup = bs(info_attr, 'html.parser')
   
   #장비 이름 추출
@@ -178,9 +189,10 @@ def getItemInfo(info_attr):
   else:
     AEE = False
   
-  return {'아이템 이름' : equip_title, '아이템 이미지' : equip_img, '스타포스' : equip_starforce, '놀장강' : AEE, '분류' : equip_class, '등급' : equip_grade, '스텟 리스트' : equip_info_dic}
+  return {"장비 착용자" : nickname, "아이템 이름" : equip_title, "분류" : equip_class, "등급" : equip_grade, "아이템 이미지" : equip_img, "스타포스" : equip_starforce, "놀장강" : AEE, "스탯 리스트" : equip_info_dic}
+  
 
-def getPlayerEquipment(equip_url):
+def getPlayerEquipment(equip_url, nickname):
   option = Options()
   #option.add_argument('--headless')
   driver = webdriver.Chrome(options=option)
@@ -189,7 +201,7 @@ def getPlayerEquipment(equip_url):
   #아이템 팟 장비 정보를 순서대로 보관할 장비 리스트
   player_equip_list = []
   #list = [1, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30]
-  list = [17]
+  list = [3]
   
   for i in list:
     item_pot_link = driver.find_element(By.XPATH, '/html/body/div[3]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/ul/li[' + str(i) + ']')
@@ -197,10 +209,7 @@ def getPlayerEquipment(equip_url):
     wait = WebDriverWait(driver, 10)
     item_info = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div')))
     iteminfo_html = item_info.get_attribute('outerHTML')
-    player_equip_list.append(getItemInfo(iteminfo_html))
+    player_equip_list.append(getItemInfo(iteminfo_html, nickname))
     time.sleep(5)
     
   return player_equip_list
-
-nickname="socowa비숍"
-getPlayerURL(nickname)
