@@ -34,7 +34,7 @@ def showPlayerInfo(playername):
       cursor.close()
       con.close()
     
-    time.sleep(5)
+    
     return result
   
   except Error as e:
