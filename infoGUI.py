@@ -6,49 +6,31 @@ import infoSQL
 
 def updateInfoButton():
   player_name = input_entry.get()
-  if not len(player_name):
-    return
-  playername_label.config(text=f"닉네임 : {player_name}")
-  input_entry.delete(0, END)
-  try:
-    player_info = infoSQL.showPlayerInfo(player_name)
-    if player_info == -1:
-      error_msg = "플레이어 검색 불가"
-      raise ValueError(error_msg)
-    
-    getImage(player_info[0][3])
-    updateInfo(player_info)
-  except TypeError as e:
-    print(f"{e}")
-    return
-  except ValueError as e:
-    update_label.config(text=error_msg, fg="red")
-    return
-
-def on_enter(event=None):
-  player_name = input_entry.get()
+  
   if not len(player_name):
     return
   playername_label.config(text=f"닉네임 : {player_name}")
   input_entry.delete(0, END)
   
   try:
-    player_info = infoSQL.showPlayerInfo(player_name)
-    if player_info == -1:
+    player_data_list = infoSQL.showPlayerInfo(player_name)
+    
+    if player_data_list == -1:
       error_msg = "플레이어 검색 불가"
       raise ValueError(error_msg)
-    input_entry.config(state=DISABLED)
-    input_button.config(state=DISABLED)
     
-    getImage(player_info[0][3])
+    player_info = player_data_list[0]
+    #equip_info = player_data_list[1]
+    
+    getImage(player_info[3])
     updateInfo(player_info)
-    #updateEquipment(player_info)
-    input_entry.after(0, lambda: input_entry.config(state=NORMAL))
+    
   except TypeError as e:
-    print(f"{str(e)}")
+    print(f"{e}")
     return
+  
   except ValueError as e:
-    update_label.config(text=error_msg, fg="red")
+    initInfo(error_msg)
     return
 
 def getImage(url):
@@ -63,19 +45,18 @@ def getImage(url):
 
 
 def updateInfo(player_info):
-  str_player_info = [str(x) for x in player_info[0]]
+  str_player_info = [str(x) for i, x in enumerate(player_info) if i != 3]
   
-  update_label.config(text="갱신일 : " + str_player_info[-1])
-  player_lv_label.config(text="레벨 : " + str_player_info[1])
-  player_job_label.config(text="직업 : " + str_player_info[2])
-  player_atk_label.config(text="스공 : " + str_player_info[4])
-  player_str_label.config(text="힘 : " + str_player_info[5])
-  player_dex_label.config(text="덱스 : " + str_player_info[6])
-  player_int_label.config(text="인트 : " + str_player_info[7])
-  player_luk_label.config(text="럭 : " + str_player_info[8])
-  player_crt_label.config(text="크리티컬 데미지 : " + str_player_info[9])
-  player_bos_label.config(text="보스 데미지 : " + str_player_info[10])
-  player_ing_label.config(text="방어율 무시 : " + str_player_info[11])
+  for idx, label in enumerate(info_label_list):
+    label.config(text=label_name_list[idx] + " : " + str_player_info[idx+1])
+
+def initInfo(msg):
+  player_img_label.config(image="", bd=0, relief=None)
+  
+  for i in range(0, 10):
+    info_label_list[i].config(text=label_name_list[i])
+  
+  info_label_list[10].config(text=msg, fg="red")
 
 root = Tk()
 root.geometry("720x600")
@@ -88,7 +69,7 @@ nick_label.grid(row=0, column=1, padx=2, pady=2)
 
 input_entry = Entry(root, width=15)
 input_entry.grid(row=1, column=1, padx=1, pady=2)
-input_entry.bind("<Return>", on_enter)
+input_entry.bind("<Return>", lambda event=None: updateInfoButton())
 
 input_button = Button(root, text="검색", command=updateInfoButton)
 input_button.grid(row=1, column=2)
@@ -102,37 +83,16 @@ player_img_label.place(x=2, y=80)
 update_button = Button(root, text="갱신", command=lambda:updateInfo(player_name))
 update_button.place(x=8, y=225)
 
-update_label = Label(root, text="갱신일 : ")
-update_label.place(x=50, y=230)
+info_label_list = []
+label_name_list = ["레벨", "직업", "스공", "힘", "덱스", "인트", "럭", "크리티컬 데미지", "보스 데미지", "방어율 무시", "갱신일"]
 
-player_lv_label = Label(root, text="레벨 : ")
-player_lv_label.place(x=8, y=255)
+for i in range(10):
+  label = Label(root, text=label_name_list[i] + " : ")
+  label.place(x=8, y=255+25*i)
+  info_label_list.append(label)
 
-player_job_label = Label(root, text="직업 : ")
-player_job_label.place(x=8, y=280)
-
-player_atk_label = Label(root, text="스공 : ", width=24)
-player_atk_label.place(x=6, y=305)
-
-player_str_label = Label(root, text="힘 : ")
-player_str_label.place(x=8, y=330)
-
-player_dex_label = Label(root, text="덱스 : ")
-player_dex_label.place(x=8, y=355)
-
-player_int_label = Label(root, text="인트 : ")
-player_int_label.place(x=8, y=380)
-
-player_luk_label = Label(root, text="럭 : ")
-player_luk_label.place(x=8, y=405)
-
-player_crt_label = Label(root, text="크리티컬 데미지 : ")
-player_crt_label.place(x=8, y=430)
-
-player_bos_label = Label(root, text="보스 데미지 : ")
-player_bos_label.place(x=8, y=455)
-
-player_ing_label = Label(root, text="방어율 무시 : ")
-player_ing_label.place(x=8, y=480)
+label = Label(root)
+label.place(x=50, y=230)
+info_label_list.append(label)
 
 root.mainloop()
