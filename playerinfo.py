@@ -79,7 +79,7 @@ def getPlayerPage(playername):
   equip_URL = maple_URL + find_equip['href']
 
   player_equip_list = getPlayerEquipment(equip_URL, nickname)
-  
+
   return {"스탯 정보" : player_stats, "장비 정보" : player_equip_list}
   #print(player_equip_list)
 

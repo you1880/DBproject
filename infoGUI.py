@@ -12,7 +12,10 @@ def updateInfoButton():
   playername_label.config(text=f"닉네임 : {player_name}")
   input_entry.delete(0, END)
   
-  try:
+  try:  
+    input_button.config(state="disabled")
+    input_entry.config(state="disabled")
+    
     player_data_list = infoSQL.showPlayerInfo(player_name)
     
     if player_data_list == -1:
@@ -25,6 +28,9 @@ def updateInfoButton():
     getImage(player_info[3])
     updateInfo(player_info)
     
+    input_button.config(state="normal")
+    input_entry.config(state="normal")
+      
   except TypeError as e:
     print(f"{e}")
     return
