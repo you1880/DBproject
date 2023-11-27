@@ -134,7 +134,7 @@ def getPlayerStats(player_page_soup, nickname):
   #player 정보를 반환
   return {"닉네임" : nickname, "레벨" : char_LV, "직업" : char_job, "이미지" : char_img, "스탯 공격력" : char_DMG, "스탯 리스트" : char_stat_dic}
 
-def getItemInfo(info_attr, nickname):
+def getItemInfo(info_attr, nickname, class_id):
   info_soup = bs(info_attr, 'html.parser')
   
   #장비 이름 추출
@@ -150,14 +150,14 @@ def getItemInfo(info_attr, nickname):
   if len(title_lines) == 2:
     equip_starforce = title_lines[1].strip().replace('성 강화', '')
   elif len(title_lines) == 1:
-    equip_starforce = ''
+    equip_starforce = 0
   
   #아이템 이미지 추출
   equip_img = info_soup.find(class_='item_img').find('img')['src']
   
   #장비 분류 추출
-  equip_class = info_soup.find_all(class_="job_name")
-  equip_class = equip_class[1].get_text().replace('장비분류 | ', '')
+  #equip_class = info_soup.find_all(class_="job_name")
+  #equip_class = equip_class[1].get_text().replace('장비분류 | ', '')
   
   #장비 잠재능력 등급 추출
   equip_grade = info_soup.find(class_="item_memo_sel")
@@ -173,23 +173,25 @@ def getItemInfo(info_attr, nickname):
   
   for info in equip_info_list:
     stet_name = info.find(class_="stet_th").get_text(strip=True)
+    if "잠재옵션" in stet_name:
+      stet_name = re.compile(r"잠재옵션\([^)]*\)").sub("잠재옵션", stet_name)
     point_name = info.find(class_="point_td").get_text(separator='$')
     equip_info_dic[stet_name] = point_name
-  
+    
   #딕셔너리 내의 문자열을 다듬는 과정
   for key, value in equip_info_dic.items():
     if '잠재옵션' in key or '기타' in key:
       equip_info_dic[key] = value.replace('$', '\n')
     else:
       equip_info_dic[key] = value.replace('$', '')
-
+  
   #기타에서 놀장강 사용템인지 아닌지 판단
   if "놀라운 장비강화 주문서" in equip_info_list[-1]:
     AEE = True
   else:
     AEE = False
   
-  return {"장비 착용자" : nickname, "아이템 이름" : equip_title, "분류" : equip_class, "등급" : equip_grade, "아이템 이미지" : equip_img, "스타포스" : equip_starforce, "놀장강" : AEE, "스탯 리스트" : equip_info_dic}
+  return {"장비 착용자" : nickname, "아이템 이름" : equip_title, "분류" : class_id, "등급" : equip_grade, "아이템 이미지" : equip_img, "스타포스" : equip_starforce, "놀장강" : AEE, "스탯 리스트" : equip_info_dic}
   
 
 def getPlayerEquipment(equip_url, nickname):
@@ -200,8 +202,7 @@ def getPlayerEquipment(equip_url, nickname):
   
   #아이템 팟 장비 정보를 순서대로 보관할 장비 리스트
   player_equip_list = []
-  #list = [1, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30]
-  list = [3]
+  list = [1, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30]
   
   for i in list:
     item_pot_link = driver.find_element(By.XPATH, '/html/body/div[3]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[1]/ul/li[' + str(i) + ']')
@@ -209,7 +210,7 @@ def getPlayerEquipment(equip_url, nickname):
     wait = WebDriverWait(driver, 10)
     item_info = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div')))
     iteminfo_html = item_info.get_attribute('outerHTML')
-    player_equip_list.append(getItemInfo(iteminfo_html, nickname))
-    time.sleep(5)
+    player_equip_list.append(getItemInfo(iteminfo_html, nickname, i))
+    time.sleep(1)
     
   return player_equip_list

@@ -17,20 +17,20 @@ def updateInfoButton():
     input_entry.config(state="disabled")
     
     player_data_list = infoSQL.showPlayerInfo(player_name)
-    
+
     if player_data_list == -1:
       error_msg = "플레이어 검색 불가"
       raise ValueError(error_msg)
     
     player_info = player_data_list[0]
-    #equip_info = player_data_list[1]
+    equip_info = player_data_list[1]
     
-    getImage(player_info[3])
-    updateInfo(player_info)
+    getImage(player_info[0][3])
+    updateInfo(player_info[0])
     
-    input_button.config(state="normal")
-    input_entry.config(state="normal")
-      
+    for info in equip_info:
+      getEquipImage(info[4], equip_label_list[info[2] - 1])
+    
   except TypeError as e:
     print(f"{e}")
     return
@@ -38,6 +38,10 @@ def updateInfoButton():
   except ValueError as e:
     initInfo(error_msg)
     return
+  
+  finally:
+    input_button.config(state="normal")
+    input_entry.config(state="normal")
 
 def getImage(url):
   response = requests.get(url)
@@ -49,12 +53,22 @@ def getImage(url):
     player_img_label.config(image=player_image, bd=1, relief="solid", width=160, height=140)
     player_img_label.image = player_image
 
+def getEquipImage(url, label):
+  response = requests.get(url)
+
+  if response.status_code == 200:
+    image_data = response.content
+    player_image = ImageTk.PhotoImage(Image.open(BytesIO(image_data)))
+    
+    label.config(image=player_image, bd=1, relief="solid", width=36, height=36)
+    label.image = player_image
+
 
 def updateInfo(player_info):
   str_player_info = [str(x) for i, x in enumerate(player_info) if i != 3]
   
   for idx, label in enumerate(info_label_list):
-    label.config(text=label_name_list[idx] + " : " + str_player_info[idx+1])
+    label.config(text=label_name_list[idx] + " : " + str_player_info[idx+1], fg="black")
 
 def initInfo(msg):
   player_img_label.config(image="", bd=0, relief=None)
@@ -100,5 +114,22 @@ for i in range(10):
 label = Label(root)
 label.place(x=50, y=230)
 info_label_list.append(label)
+
+equip_label_list = []
+dx = dy = 0
+
+for idx in range(0, 30):
+  if idx not in [1, 3, 8, 25, 26]:
+    label = Label(root)
+    label.place(x=320+45*dx, y=80+45*dy)
+    equip_label_list.append(label)
+  else:
+    equip_label_list.append(None)
+    
+  dx+=1
+  
+  if dx==5:
+    dx=0
+    dy+=1
 
 root.mainloop()
