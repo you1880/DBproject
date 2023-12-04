@@ -65,7 +65,7 @@ def updateInitialInfo(playername):
   player_data = playerinfo.getPlayerPage(playername)
   
   if player_data == -1:
-    return [0, 0]
+    return [0, 0, 0, 0]
   
   update_date = datetime.now().strftime("%Y-%m-%d")
 
@@ -114,7 +114,7 @@ def updateInfo(playername):
   player_data = playerinfo.getPlayerPage(playername)
   
   if player_data == -1:
-    return [0, 0]
+    return [0, 0, 0, 0]
   
   update_date = datetime.now().strftime("%Y-%m-%d")
   
