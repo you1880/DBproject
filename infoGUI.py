@@ -4,6 +4,9 @@ from io import BytesIO
 import requests
 import infoSQL
 
+equip_info = None
+eq_info_label_list = []
+
 def updateInfoButton():
   player_name = input_entry.get()
   
@@ -23,13 +26,14 @@ def updateInfoButton():
       raise ValueError(error_msg)
     
     player_info = player_data_list[0]
+    global equip_info
     equip_info = player_data_list[1]
     
     getImage(player_info[0][3])
     updateInfo(player_info[0])
     
     for info in equip_info:
-      getEquipImage(info[4], equip_label_list[info[2] - 1])
+      getEquipImage(info[4], equip_button_list[info[2] - 1])
     
   except TypeError as e:
     print(f"{e}")
@@ -77,6 +81,53 @@ def initInfo(msg):
     info_label_list[i].config(text=label_name_list[i])
   
   info_label_list[10].config(text=msg, fg="red")
+  
+def displayEquipInfo(eq_class):
+  equip_label_name_list = ['아이템 이름', '등급', '스타포스', '공격속도', 'STR', 'DEX', 'INT', 'LUK', 'MaxHP', 'MaxMP', '공격력', '마력',
+                          '물리방어력', '이동속도', '점프력', '보스 몬스터공격 시', '몬스터 방어력 무시', '올스탯', '착용 레벨 감소', 
+                          '업그레이드 가능 횟수', '가위 사용 가능 횟수', '잠재옵션', '에디셔널 잠재옵션', '소울옵션', '기타']
+  
+  eq_info = [elem for idx, elem in enumerate(equip_info[eq_class]) if idx not in [0, 2, 4, 6]]
+  
+  global eq_info_label_list
+  for label in eq_info_label_list:
+    label.destroy()
+    
+  eq_info_label_list = []
+  
+  i = gap = 0
+  for info in eq_info:
+    if i == 0:
+      label = Label(root, text=info)
+      label.place(x=200, y=300)
+      eq_info_label_list.append(label)
+    elif i == 1:
+      grade = '일반' if info is None else info
+      label = Label(root, text=grade + " 아이템")
+      label.place(x=200, y=320)
+      eq_info_label_list.append(label)
+    elif i == 2 and info != '0':
+      label = Label(root, text='⭐x' + str(info))
+      label.place(x=200, y=340)
+      eq_info_label_list.append(label)
+    elif i == 21:
+      label = Label(root, text='잠재옵션')
+      label.place(x=200, y=360)
+      label = Label(root, text=info)
+      label.place(x=200, y=380)
+      eq_info_label_list.append(label)
+    elif i == 22:
+      label = Label(root, text='에디셔널 잠재옵션')
+      label.place(x=200, y=440)
+      label = Label(root, text=info)
+      label.place(x=200, y=460)
+      eq_info_label_list.append(label)
+    elif info is not None and i != 24:
+      label = Label(root, text=equip_label_name_list[i] + ' ' + str(info))
+      label.place(x=400, y=300+20*gap)
+      eq_info_label_list.append(label)
+      gap = gap + 1
+    i = i + 1
 
 root = Tk()
 root.geometry("720x600")
@@ -108,23 +159,26 @@ label_name_list = ["레벨", "직업", "스공", "힘", "덱스", "인트", "럭
 
 for i in range(10):
   label = Label(root, text=label_name_list[i] + " : ")
-  label.place(x=8, y=255+25*i)
+  label.place(x=8, y=250+25*i)
   info_label_list.append(label)
 
 label = Label(root)
 label.place(x=50, y=230)
 info_label_list.append(label)
 
-equip_label_list = []
+equip_button_list = []
 dx = dy = 0
 
+eq_c = 0
 for idx in range(0, 30):
   if idx not in [1, 3, 8, 25, 26]:
-    label = Label(root)
-    label.place(x=320+45*dx, y=80+45*dy)
-    equip_label_list.append(label)
+    button = Button(root, command=lambda c = eq_c: displayEquipInfo(c))
+    button.place(x=320+45*dx, y=20+45*dy)
+    equip_button_list.append(button)
+    eq_c = eq_c + 1
+    
   else:
-    equip_label_list.append(None)
+    equip_button_list.append(None)
     
   dx+=1
   

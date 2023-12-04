@@ -2,7 +2,6 @@ import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
 import playerinfo
-import time
 
 def showPlayerInfo(playername):
   try:
