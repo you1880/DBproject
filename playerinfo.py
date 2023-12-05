@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup as bs
-from bs4 import BeautifulSoup as bs
 from urllib.parse import quote
 import requests
 import re
@@ -73,7 +72,6 @@ def getPlayerPage(playername):
     return -1
   
   player_stats = getPlayerStats(player_page_soup, nickname)
-  #print(player_stats)
   
   find_equip = player_page_soup.find(class_="lnb_list").find('a', string="장비")
   equip_URL = maple_URL + find_equip['href']
@@ -81,7 +79,6 @@ def getPlayerPage(playername):
   player_equip_list = getPlayerEquipment(equip_URL, nickname)
 
   return {"스탯 정보" : player_stats, "장비 정보" : player_equip_list}
-  #print(player_equip_list)
 
 #플레이어의 기본 스텟을 불러오는 함수
 def getPlayerStats(player_page_soup, nickname): 
@@ -155,10 +152,6 @@ def getItemInfo(info_attr, nickname, class_id):
   #아이템 이미지 추출
   equip_img = info_soup.find(class_='item_img').find('img')['src']
   
-  #장비 분류 추출
-  #equip_class = info_soup.find_all(class_="job_name")
-  #equip_class = equip_class[1].get_text().replace('장비분류 | ', '')
-  
   #장비 잠재능력 등급 추출
   equip_grade = info_soup.find(class_="item_memo_sel")
   if equip_grade is not None:
@@ -196,7 +189,7 @@ def getItemInfo(info_attr, nickname, class_id):
 
 def getPlayerEquipment(equip_url, nickname):
   option = Options()
-  #option.add_argument('--headless')
+  option.add_argument('--headless')
   driver = webdriver.Chrome(options=option)
   driver.get(equip_url)
   

@@ -104,26 +104,36 @@ def displayEquipInfo(eq_class):
   equip_label_name_list = ['아이템 이름', '등급', '스타포스', '공격속도', 'STR', 'DEX', 'INT', 'LUK', 'MaxHP', 'MaxMP', '공격력', '마력',
                           '물리방어력', '이동속도', '점프력', '보스 몬스터공격 시', '몬스터 방어력 무시', '올스탯', '착용 레벨 감소', 
                           '업그레이드 가능 횟수', '가위 사용 가능 횟수', '잠재옵션', '에디셔널 잠재옵션', '소울옵션', '기타']
+  #print(equip_info[eq_class][6])
+  eq_info = [elem for idx, elem in enumerate(equip_info[eq_class]) if idx not in [0, 2, 4, 24]]
   
-  eq_info = [elem for idx, elem in enumerate(equip_info[eq_class]) if idx not in [0, 2, 4, 6]]
+  for label in eq_info_label_list:
+    label.config(text="")
   
   eq_info_label_list.clear()
   
   i = gap = 0
+
   for info in eq_info:
     if i == 0:
       label = Label(root, text=info)
       label.place(x=200, y=300)
       eq_info_label_list.append(label)
+      
     elif i == 1:
-      grade = '일반' if info is None else info
+      grade = '일반' if info == 'None' else info
+
       label = Label(root, text=grade + " 아이템")
       label.place(x=200, y=320)
       eq_info_label_list.append(label)
+      
     elif i == 2 and info != '0':
-      label = Label(root, text='⭐x' + str(info))
+      color = 'skyblue' if equip_info[eq_class][6] == 1 else 'yellow'
+      
+      label = Label(root, text='⭐x' + str(info), fg=color)
       label.place(x=200, y=340)
       eq_info_label_list.append(label)
+      
     elif i == 21:
       label = Label(root, text='잠재옵션')
       label.place(x=200, y=360)
@@ -132,6 +142,7 @@ def displayEquipInfo(eq_class):
       label = Label(root, text=info)
       label.place(x=200, y=380)
       eq_info_label_list.append(label)
+      
     elif i == 22:
       label = Label(root, text='에디셔널 잠재옵션')
       label.place(x=200, y=440)
@@ -140,11 +151,13 @@ def displayEquipInfo(eq_class):
       label = Label(root, text=info)
       label.place(x=200, y=460)
       eq_info_label_list.append(label)
+      
     elif info is not None and i != 24:
       label = Label(root, text=equip_label_name_list[i] + ' ' + str(info))
       label.place(x=400, y=300+20*gap)
       eq_info_label_list.append(label)
       gap = gap + 1
+      
     i = i + 1
 
 root = Tk()
